@@ -82,7 +82,17 @@ setTheme(currentTheme);
 function setLanguage(langCode) {
     currentLang = langCode;
     localStorage.setItem('gamepulse_lang', langCode);
+    
+    // Обновляем все статические тексты
     updateLanguage();
+    
+    // Обновляем текст кнопки фильтра
+    updatePCFilterButtonText();
+    
+    // Перерисовываем галереи (чтобы обновить текст на карточках)
+    renderAllGalleries();
+    renderFavorites();
+    renderProfileFavorites();
 }
 window.setLanguage = setLanguage;
 
@@ -91,14 +101,35 @@ function updateLanguage() {
     for (let key in l) {
         const el = document.getElementById(key);
         if (el) {
-            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'BUTTON') {
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
                 el.placeholder = l[key];
+            } else if (el.tagName === 'BUTTON') {
+                el.innerHTML = l[key];
             } else {
                 el.innerText = l[key];
             }
         }
     }
+    // Обновляем метки в профиле (без id)
+    const nickLabel = document.querySelector('.profile-meta-row:nth-child(1) .profile-meta-label');
+    if (nickLabel) nickLabel.innerText = l.profileNickLabel;
+    const emailLabel = document.querySelector('.profile-meta-row:nth-child(2) .profile-meta-label');
+    if (emailLabel) emailLabel.innerText = l.profileEmailLabel;
+    const sinceLabel = document.querySelector('.profile-meta-row:nth-child(3) .profile-meta-label');
+    if (sinceLabel) sinceLabel.innerText = l.profileSinceLabel;
+    const favCountLabel = document.querySelector('.profile-meta-row:nth-child(4) .profile-meta-label');
+    if (favCountLabel) favCountLabel.innerText = l.profileFavoritesCountLabel;
+    
     document.getElementById('langLabel').innerText = l.langLabel || 'Язык / Language';
+}
+
+function updatePCFilterButtonText() {
+    const btn = document.getElementById('pcFilterBtn');
+    if (btn) {
+        btn.innerHTML = pcFilterActive ? lang[currentLang].pcFilterActive : lang[currentLang].pcFilterBtn;
+        btn.style.background = pcFilterActive ? 'var(--accent)' : '';
+        btn.style.color = pcFilterActive ? '#000' : '';
+    }
 }
 
 window.randomGame = function() {
@@ -132,10 +163,16 @@ function renderGallery(containerId, gameIds) {
         };
         card.appendChild(star);
         
+        // Если захочешь добавить название игры на карточку, используй:
+        // const titleSpan = document.createElement('div');
+        // titleSpan.className = 'card-title';
+        // titleSpan.innerText = game[`title_${currentLang}`];
+        // card.appendChild(titleSpan);
+        
         if (game.playtime_main && game.playtime_completion) {
             const playtimeDiv = document.createElement('div');
             playtimeDiv.className = 'card-playtime';
-            playtimeDiv.innerHTML = `⏱️ ${game.playtime_main} / ${game.playtime_completion} ч`;
+            playtimeDiv.innerHTML = `⏱️ ${game.playtime_main} / ${game.playtime_completion} ч`; // можно перевести через lang
             card.appendChild(playtimeDiv);
         }
         
@@ -167,7 +204,7 @@ window.renderAllGalleries = function() {
         renderGallery(galleryId, ids);
     }
 
-    // Показываем/скрываем секции если все игры отфильтрованы
+    // Показываем/скрываем секции
     if (pcFilterActive) {
         const sectionMap = {
             popularGallery: 'popular', assassinsGallery: 'assassins',
@@ -180,16 +217,17 @@ window.renderAllGalleries = function() {
             const gallery = document.getElementById(galleryId);
             if (section) section.style.display = gallery && gallery.children.length > 0 ? '' : 'none';
         }
-        // Показываем сообщение если вообще ничего нет
         let total = 0;
         for (let galleryId in allSections) {
             const g = document.getElementById(galleryId);
             if (g) total += g.children.length;
         }
         const noGames = document.getElementById('pcFilterEmpty');
-        if (noGames) noGames.style.display = total === 0 ? 'block' : 'none';
+        if (noGames) {
+            noGames.style.display = total === 0 ? 'block' : 'none';
+            noGames.innerText = lang[currentLang].pcFilterEmpty;
+        }
     } else {
-        // Восстанавливаем все секции
         ['popular','assassins','farcry','godofwar','hitman','battlefield','forza','simulators'].forEach(id => {
             const s = document.getElementById(id);
             if (s) s.style.display = '';
@@ -205,6 +243,7 @@ window.renderFavorites = function() {
     if (favorites.length === 0) {
         gallery.innerHTML = '';
         empty.classList.remove('hidden');
+        empty.innerText = lang[currentLang].favoritesEmpty;
     } else {
         empty.classList.add('hidden');
         renderGallery('favoritesGallery', favorites);
@@ -217,7 +256,10 @@ window.renderProfileFavorites = function() {
     if (!gallery) return;
     if (favorites.length === 0) {
         gallery.innerHTML = '';
-        if (empty) empty.classList.remove('hidden');
+        if (empty) {
+            empty.classList.remove('hidden');
+            empty.innerText = lang[currentLang].profileEmptyFavorites;
+        }
     } else {
         if (empty) empty.classList.add('hidden');
         gallery.innerHTML = '';
@@ -256,7 +298,7 @@ window.renderProfileFavorites = function() {
 window.toggleFavorite = async function(gameId, starElement) {
     const user = auth.currentUser;
     if (!user) {
-        alert('Чтобы добавить в избранное, войдите в профиль');
+        alert(currentLang === 'ru' ? 'Чтобы добавить в избранное, войдите в профиль' : 'Login to add to favorites');
         return;
     }
     
@@ -298,7 +340,7 @@ window.toggleFavorite = async function(gameId, starElement) {
         if (!favoritesSection.classList.contains('hidden')) renderFavorites();
         if (!profileSection.classList.contains('hidden')) renderProfileFavorites();
         if (favCountEl) favCountEl.textContent = favorites.length;
-        alert('Ошибка соединения, попробуйте снова');
+        alert(currentLang === 'ru' ? 'Ошибка соединения' : 'Connection error');
     }
 };
 
@@ -315,7 +357,6 @@ onAuthStateChanged(auth, async (user) => {
     if (favCountEl) favCountEl.textContent = favorites.length;
 });
 
-// Функция оценки системы (без изменений)
 function evaluateSystem() {
     const cpu = userPC.cpu.toLowerCase();
     const gpu = userPC.gpu.toLowerCase();
@@ -360,8 +401,9 @@ function evaluateSystem() {
     return { cpuScore, gpuScore, ramScore, totalScore };
 }
 
-// Гейм-доктор (без изменений)
-function getDoctorVerdict(gameId) {
+// Гейм-доктор (будет использоваться на странице игры)
+// Эта функция вызывается из gamePage.js, поэтому она должна быть глобальной
+window.getDoctorVerdict = function(gameId) {
     const game = games[gameId];
     if (!game) return '';
 
@@ -424,7 +466,7 @@ function getDoctorVerdict(gameId) {
     }
 
     return verdictLines.join('<br><br>');
-}
+};
 
 // Поиск (без изменений)
 function performSearch() {
@@ -687,7 +729,6 @@ screenshotInput.addEventListener('change', (e) => {
 });
 
 window.togglePCFilter = function() {
-    // Читаем свежие данные из localStorage на случай если только что сохранили
     userPC.cpu = localStorage.getItem('userCPU') || '';
     userPC.gpu = localStorage.getItem('userGPU') || '';
     userPC.ram = parseInt(localStorage.getItem('userRAM')) || 0;
@@ -699,20 +740,27 @@ window.togglePCFilter = function() {
         return;
     }
     pcFilterActive = !pcFilterActive;
-    const btn = document.getElementById('pcFilterBtn');
-    if (btn) {
-        btn.textContent = pcFilterActive
-            ? (currentLang === 'ru' ? '🔥 Фильтр ВКЛ' : '🔥 Filter ON')
-            : (currentLang === 'ru' ? '🔥 Фильтр по ПК' : '🔥 PC Filter');
-        btn.style.background = pcFilterActive ? 'var(--accent)' : '';
-        btn.style.color = pcFilterActive ? '#000' : '';
-    }
+    updatePCFilterButtonText();
     showGames();
 };
 
-showHome();
-renderAllGalleries();
-updateLanguage();// Обработка якоря для открытия раздела игр
+// Обработка якоря
 if (window.location.hash === '#gamesSection') {
     showGames();
 }
+
+showHome();
+renderAllGalleries();
+updateLanguage();
+// ===== КНОПКА НАВЕРХ =====
+(function() {
+    const btn = document.getElementById('backToTop');
+    if (!btn) return;
+    window.addEventListener('scroll', function() {
+        if (window.scrollY > 400) {
+            btn.classList.add('visible');
+        } else {
+            btn.classList.remove('visible');
+        }
+    }, { passive: true });
+})();

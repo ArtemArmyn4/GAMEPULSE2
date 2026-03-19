@@ -86,7 +86,7 @@
                 <li class="nav-divider"></li>
                 <li><button id="navRandom" onclick="randomGame()">🎲 Случайная</button></li>
                 <li><button id="pcFilterBtn" onclick="togglePCFilter()">🔥 Мой ПК</button></li>
-                <li><button onclick="window.location.href='compare.html'">⚔️ Сравнить</button></li>
+                <li><button id="navCompare" onclick="window.location.href='compare.html'">⚔️ Сравнить</button></li>
                 <li class="nav-divider"></li>
                 <li><button id="navSettings" onclick="showSettings()">⚙️ Настройки</button></li>
             </ul>
@@ -198,7 +198,7 @@
     <!-- Страница избранного -->
     <div id="favoritesSection" class="hidden">
         <section class="section">
-            <h2 class="title fade-up">Избранное</h2>
+            <h2 id="favoritesSectionTitle" class="title fade-up">Избранное</h2>
             <div class="gallery" id="favoritesGallery"></div>
             <div id="favoritesEmpty" class="empty-message">Здесь пока пусто. Добавьте игры в избранное, нажав на звёздочку.</div>
         </section>
@@ -246,17 +246,17 @@
 
                     <!-- Изменить ник -->
                     <div class="profile-card">
-                        <h3 class="profile-card-title">✏️ Изменить никнейм</h3>
+                        <h3 id="profileChangeNickTitle" class="profile-card-title">✏️ Изменить никнейм</h3>
                         <div class="profile-field-row">
                             <input type="text" id="displayNameInput" placeholder="Новый никнейм" class="profile-input">
-                            <button class="btn" onclick="saveDisplayName()">Сохранить</button>
+                            <button id="profileSaveNickBtn" class="btn" onclick="saveDisplayName()">Сохранить</button>
                         </div>
                         <p id="displayNameStatus" class="profile-status-msg"></p>
                     </div>
 
                     <!-- Сменить пароль -->
                     <div class="profile-card">
-                        <h3 class="profile-card-title">🔒 Сменить пароль</h3>
+                        <h3 id="profileChangePasswordTitle" class="profile-card-title">🔒 Сменить пароль</h3>
                         <div class="password-wrapper profile-pw-field">
                             <input type="password" id="currentPassword" placeholder="Текущий пароль" class="profile-input">
                             <span class="toggle-password" onclick="togglePasswordVisibility('currentPassword', this)">👁️</span>
@@ -265,7 +265,7 @@
                             <input type="password" id="newPassword" placeholder="Новый пароль (мин. 6 символов)" class="profile-input">
                             <span class="toggle-password" onclick="togglePasswordVisibility('newPassword', this)">👁️</span>
                         </div>
-                        <button class="btn" onclick="changePassword()">Сменить пароль</button>
+                        <button id="profileChangePasswordBtn" class="btn" onclick="changePassword()">Сменить пароль</button>
                         <p id="passwordStatus" class="profile-status-msg"></p>
                     </div>
 
@@ -274,7 +274,7 @@
 
             <!-- Избранные игры -->
             <div class="profile-favorites-section">
-                <h3 class="profile-card-title">⭐ Мои избранные игры</h3>
+                <h3 id="profileFavoritesTitle" class="profile-card-title">⭐ Мои избранные игры</h3>
                 <div class="gallery" id="profileFavoritesGallery"></div>
                 <div id="profileFavoritesEmpty" class="empty-message">У вас пока нет избранных игр.</div>
             </div>
@@ -349,6 +349,9 @@
         <img id="fullsizePhoto" src="" style="max-width:96vw; max-height:96vh; border-radius:16px; border:3px solid var(--accent); box-shadow:0 0 80px rgba(0,0,0,0.9); object-fit:contain; cursor:default;" onclick="event.stopPropagation()">
         <button onclick="document.getElementById('photoModal').style.display='none'" style="position:absolute; top:1.5rem; right:1.5rem; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; font-size:1.4rem; width:44px; height:44px; border-radius:50%; cursor:pointer; backdrop-filter:blur(5px);">✕</button>
     </div>
+
+    <!-- Кнопка Наверх -->
+    <button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Наверх">▲</button>
 
     <footer>
         <p id="footerText">© 2026 GamePulse — системные требования из официальных источников. Все права на изображения принадлежат правообладателям.</p>
