@@ -609,7 +609,7 @@ const games = {
             gpu: 'NVIDIA GT 1030',
             ram: 8
         },
-        trailer: 'https://www.youtube.com/embed/FCeEvQ68jY8'
+        trailer: 'https://www.youtube.com/embed/gf5h4co4Ydc'
     },
     fc3: {
         title_ru: 'Far Cry 3',
